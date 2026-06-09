@@ -13,6 +13,14 @@ import streamlit as st
 from pypdf import PdfReader
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
+try:
+    import torch
+    from transformers import pipeline
+    HAS_TRANSFORMERS = True
+except ImportError:
+    HAS_TRANSFORMERS = False
+
+
 st.set_page_config(
     page_title="Sentiment Studio",
     page_icon="💬",
@@ -438,12 +446,43 @@ SAMPLE_TEXTS = {
     "Neutral sample": "The service is okay, but there is room for improvement.",
 }
 
-MODEL_NAME = "VADER Sentiment Analyzer"
-MODEL_DESCRIPTION = (
-    "A lightweight rule-based sentiment engine that is fast to deploy on Streamlit Cloud. "
-    "It scores text into positive, negative, or neutral sentiment and converts the score into a 0-4 scale."
-)
-MODEL_TECH = "vaderSentiment"
+MODEL_PROFILES = {
+    "VADER": {
+        "name": "VADER Sentiment Analyzer",
+        "description": "A lightweight rule-based sentiment engine that is fast to deploy. It scores text into positive, negative, or neutral sentiment.",
+        "tech": "vaderSentiment",
+        "size": "N/A",
+        "accuracy": "Baseline",
+        "type": "Rule-Based Lexicon"
+    },
+    "DeBERTa Small": {
+        "name": "DeBERTa-v3 Small Zero-Shot",
+        "description": "An efficient zero-shot classification model (MoritzLaurer/deberta-v3-xsmall-zeroshot-v1.1-all-33) with ~22M backbone parameters. Excellent speed-to-accuracy balance.",
+        "tech": "transformers (deberta-v3-xsmall)",
+        "size": "~142 MB",
+        "accuracy": "High",
+        "type": "Transformer (Zero-Shot)"
+    },
+    "DeBERTa Base": {
+        "name": "DeBERTa-v3 Base Zero-Shot",
+        "description": "A powerful zero-shot classification model (MoritzLaurer/deberta-v3-base-zeroshot-v1.1-all-33) with ~86M backbone parameters. Provides maximum general sentiment accuracy.",
+        "tech": "transformers (deberta-v3-base)",
+        "size": "~370 MB",
+        "accuracy": "Maximum",
+        "type": "Transformer (Zero-Shot)"
+    }
+}
+
+@st.cache_resource
+def load_deberta_pipeline(model_id: str):
+    if not HAS_TRANSFORMERS:
+        return None
+    return pipeline(
+        "zero-shot-classification",
+        model=model_id,
+        device=0 if torch.cuda.is_available() else -1
+    )
+
 
 STOPWORDS = {
     "the",
@@ -490,6 +529,7 @@ def ensure_state() -> None:
         "pdf_text": "",
         "pdf_names": [],
         "last_pdf_signature": "",
+        "selected_model": "VADER",
     }
     for key, value in defaults.items():
         if key not in st.session_state:
@@ -504,7 +544,7 @@ def classify(compound: float) -> tuple[str, int, str]:
     return "Neutral", 2, "😐"
 
 
-def analyze_text(text: str) -> dict[str, Any]:
+def analyze_vader(text: str) -> dict[str, Any]:
     scores = ANALYZER.polarity_scores(text)
     sentiment, score, emoji = classify(scores["compound"])
     confidence = max(scores["pos"], scores["neg"], scores["neu"])
@@ -521,6 +561,54 @@ def analyze_text(text: str) -> dict[str, Any]:
         "neu": scores["neu"],
         "created_at": datetime.now().strftime("%d %b %Y, %I:%M %p"),
     }
+
+
+def analyze_deberta(text: str, model_id: str) -> dict[str, Any]:
+    classifier = load_deberta_pipeline(model_id)
+    if classifier is None:
+        return analyze_vader(text)
+
+    candidate_labels = ["positive", "neutral", "negative"]
+    hypothesis_template = "The sentiment of this text is {}."
+    
+    # Run classification
+    result = classifier(text, candidate_labels=candidate_labels, hypothesis_template=hypothesis_template)
+    
+    # Extract probabilities
+    scores_dict = dict(zip(result["labels"], result["scores"]))
+    pos_prob = scores_dict.get("positive", 0.0)
+    neu_prob = scores_dict.get("neutral", 0.0)
+    neg_prob = scores_dict.get("negative", 0.0)
+    
+    # Map to VADER-like compound range [-1.0, 1.0]
+    compound = pos_prob - neg_prob
+    sentiment, score, emoji = classify(compound)
+    confidence = max(pos_prob, neu_prob, neg_prob)
+    
+    return {
+        "text": text,
+        "sentiment": sentiment,
+        "score": score,
+        "emoji": emoji,
+        "confidence": confidence,
+        "confidence_text": f"{round(confidence * 100)}%",
+        "compound": compound,
+        "pos": pos_prob,
+        "neg": neg_prob,
+        "neu": neu_prob,
+        "created_at": datetime.now().strftime("%d %b %Y, %I:%M %p"),
+    }
+
+
+def analyze_text(text: str) -> dict[str, Any]:
+    selected_model = st.session_state.get("selected_model", "VADER")
+    if selected_model == "DeBERTa Small" and HAS_TRANSFORMERS:
+        return analyze_deberta(text, "MoritzLaurer/deberta-v3-xsmall-zeroshot-v1.1-all-33")
+    elif selected_model == "DeBERTa Base" and HAS_TRANSFORMERS:
+        return analyze_deberta(text, "MoritzLaurer/deberta-v3-base-zeroshot-v1.1-all-33")
+    else:
+        return analyze_vader(text)
+
 
 
 def push_history(record: dict[str, Any]) -> None:
@@ -638,6 +726,9 @@ def main() -> None:
     st.session_state.ui_theme = theme
     inject_styles(theme)
 
+    active_model = st.session_state.get("selected_model", "VADER")
+    active_type = MODEL_PROFILES[active_model]["type"]
+
     top_left, top_right = st.columns([4, 1])
     with top_left:
         st.markdown(
@@ -656,14 +747,14 @@ def main() -> None:
         st.toggle("Light theme", key="theme_switch")
 
     st.markdown(
-        """
+        f"""
         <div class="hero">
             <div class="hero-grid">
                 <div>
                     <div class="eyebrow">AI sentiment intelligence</div>
                     <h1>Sentiment Studio</h1>
                     <p>
-                        Analyze plain text or uploaded PDFs, inspect the VADER model output, and switch between dark and light themes without leaving the page.
+                        Analyze plain text or uploaded PDFs, inspect the {active_model} model output, and switch between dark and light themes without leaving the page.
                     </p>
                     <div class="hero-cta">
                         <span class="chip">Text + PDF input</span>
@@ -673,7 +764,7 @@ def main() -> None:
                     </div>
                 </div>
                 <div class="hero-panel">
-                    <div class="hero-stat"><div class="label">Model</div><div class="value">VADER</div><div class="note">Fast local inference</div></div>
+                    <div class="hero-stat"><div class="label">Model</div><div class="value">{active_model}</div><div class="note">{active_type}</div></div>
                     <div class="hero-stat"><div class="label">Scale</div><div class="value">0-4</div><div class="note">Neutral centered score</div></div>
                     <div class="hero-stat"><div class="label">Input</div><div class="value">PDF</div><div class="note">Extract text from files</div></div>
                     <div class="hero-stat"><div class="label">Theme</div><div class="value">Dual</div><div class="note">Dark and light modes</div></div>
@@ -683,6 +774,7 @@ def main() -> None:
         """,
         unsafe_allow_html=True,
     )
+
 
     st.write("")
 
@@ -703,13 +795,13 @@ def main() -> None:
     st.write("")
 
     st.markdown(
-        """
+        f"""
         <div class="card">
             <div class="section-kicker">Model Pipeline</div>
             <div class="pipeline">
                 <div class="step-card"><div class="step-index">1</div><h4>Collect Input</h4><p>Paste text or upload PDFs to build your analysis sample.</p></div>
                 <div class="step-card"><div class="step-index">2</div><h4>Extract Text</h4><p>The app reads PDF text and prepares it for the sentiment engine.</p></div>
-                <div class="step-card"><div class="step-index">3</div><h4>Analyze Sentiment</h4><p>VADER returns polarity scores, confidence, and the final sentiment label.</p></div>
+                <div class="step-card"><div class="step-index">3</div><h4>Analyze Sentiment</h4><p>{active_model} returns polarity scores, confidence, and the final sentiment label.</p></div>
                 <div class="step-card"><div class="step-index">4</div><h4>Visualize</h4><p>See the model output, score trend, and keyword focus in compact charts.</p></div>
                 <div class="step-card"><div class="step-index">5</div><h4>Export</h4><p>Download CSV or a report for sharing and quick review.</p></div>
                 <div class="step-card"><div class="step-index">6</div><h4>Switch Theme</h4><p>Use the dark or light view depending on your preference and environment.</p></div>
@@ -718,6 +810,7 @@ def main() -> None:
         """,
         unsafe_allow_html=True,
     )
+
 
     st.write("")
 
@@ -880,10 +973,50 @@ def main() -> None:
         st.markdown('<div class="card">', unsafe_allow_html=True)
         st.markdown('<div class="section-kicker">Model Dashboard</div>', unsafe_allow_html=True)
         st.markdown('<h3 class="section-title">Model Profile</h3>', unsafe_allow_html=True)
-        st.write(MODEL_NAME)
-        st.write(MODEL_DESCRIPTION)
-        st.caption(MODEL_TECH)
+        
+        # Determine available models
+        available_models = ["VADER"]
+        if HAS_TRANSFORMERS:
+            available_models.extend(["DeBERTa Small", "DeBERTa Base"])
+            
+        curr_model = st.session_state.get("selected_model", "VADER")
+        if curr_model not in available_models:
+            curr_model = "VADER"
+        idx = available_models.index(curr_model)
+        
+        selected_model = st.selectbox(
+            "Active Sentiment Model",
+            options=available_models,
+            index=idx,
+            key="selected_model",
+            help="Choose the sentiment classifier. DeBERTa models require transformers and might take a moment to download on first run."
+        )
+        
+        # Display selected model details
+        profile = MODEL_PROFILES[selected_model]
+        st.markdown(f"**Name**: `{profile['name']}`")
+        st.markdown(f"**Description**: {profile['description']}")
+        st.markdown(f"**Technology**: `{profile['tech']}`")
+        st.markdown(f"**Type**: `{profile['type']}`")
+        st.markdown(f"**Weight Size**: `{profile['size']}`")
+        st.markdown(f"**Expected Accuracy**: `{profile['accuracy']}`")
+        
+        if not HAS_TRANSFORMERS:
+            st.markdown(
+                """
+                <div style="margin-top: 1rem; padding: 0.75rem; border-radius: 12px; background-color: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2);">
+                    <div style="font-weight: bold; color: #ef4444; font-size: 0.85rem; margin-bottom: 0.25rem;">DeBERTa Models Unavailable</div>
+                    <div style="font-size: 0.8rem; color: var(--text-sub);">
+                        Please install the required libraries to enable DeBERTa:<br>
+                        <code>pip install transformers torch sentencepiece torchvision</code>
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+            
         st.markdown('</div>', unsafe_allow_html=True)
+
 
         history = st.session_state.history
         st.markdown('<div class="chart-stack">', unsafe_allow_html=True)

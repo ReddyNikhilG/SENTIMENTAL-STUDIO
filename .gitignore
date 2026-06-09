@@ -1,15 +1,9 @@
-# Maven
-target/
+# Python virtual environment
+.venv/
+venv/
 
 # Logs
 *.log
-
-# Compiled files
-*.class
-
-# Java archive files
-*.jar
-*.war
 
 # IDE files
 .vscode/
@@ -17,3 +11,10 @@ target/
 
 # OS files
 .DS_Store
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Streamlit cache
+.streamlit/

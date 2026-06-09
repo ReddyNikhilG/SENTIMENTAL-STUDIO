@@ -1,24 +1,22 @@
-# Stage 1: Build
-FROM maven:3.9.9-eclipse-temurin-21 AS build
+FROM python:3.10-slim
 
 WORKDIR /app
 
-COPY pom.xml .
-RUN mvn dependency:go-offline -B
+# Install build dependencies for compiling sentencepiece and other packages
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY src ./src
-RUN mvn clean package -DskipTests
+# Copy and install python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Stage 2: Run
-FROM eclipse-temurin:21-jre
+# Copy application files
+COPY . .
 
-WORKDIR /app
+# Expose default container port
+EXPOSE 8501
 
-COPY --from=build /app/target/sentiment-analysis-0.0.1-SNAPSHOT.jar app.jar
-
-EXPOSE 8080
-
-ENV PORT=8080
-ENV JAVA_OPTS="-Xmx512m -Xms256m"
-
-CMD ["sh", "-c", "java $JAVA_OPTS -jar app.jar --server.port=${PORT}"]
+# Execute streamlit, falling back to port 8501 if no PORT environment variable is configured
+CMD ["sh", "-c", "streamlit run app.py --server.port=${PORT:-8501} --server.address=0.0.0.0"]
