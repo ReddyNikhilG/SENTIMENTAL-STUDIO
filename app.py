@@ -4,6 +4,7 @@ from collections import Counter
 from datetime import datetime
 from io import StringIO
 import csv
+import sys
 import re
 from typing import Any
 
@@ -571,8 +572,13 @@ def analyze_deberta(text: str, model_id: str) -> dict[str, Any]:
     candidate_labels = ["positive", "neutral", "negative"]
     hypothesis_template = "The sentiment of this text is {}."
     
-    # Run classification
-    result = classifier(text, candidate_labels=candidate_labels, hypothesis_template=hypothesis_template)
+    # Run classification with truncation enabled to handle long texts gracefully
+    result = classifier(
+        text,
+        candidate_labels=candidate_labels,
+        hypothesis_template=hypothesis_template,
+        truncation=True
+    )
     
     # Extract probabilities
     scores_dict = dict(zip(result["labels"], result["scores"]))
@@ -1003,12 +1009,18 @@ def main() -> None:
         
         if not HAS_TRANSFORMERS:
             st.markdown(
-                """
+                f"""
                 <div style="margin-top: 1rem; padding: 0.75rem; border-radius: 12px; background-color: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2);">
                     <div style="font-weight: bold; color: #ef4444; font-size: 0.85rem; margin-bottom: 0.25rem;">DeBERTa Models Unavailable</div>
                     <div style="font-size: 0.8rem; color: var(--text-sub);">
-                        Please install the required libraries to enable DeBERTa:<br>
+                        The active Python environment does not have <code>transformers</code> or <code>torch</code> installed.<br><br>
+                        <b>To fix this, please run the app using the virtual environment:</b><br>
+                        <code>.venv\\Scripts\\streamlit run app.py</code><br><br>
+                        Or install libraries in the current environment:<br>
                         <code>pip install transformers torch sentencepiece torchvision</code>
+                    </div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.6rem; border-top: 1px solid rgba(239, 68, 68, 0.15); padding-top: 0.4rem; font-family: monospace;">
+                        Active Python: {sys.executable}
                     </div>
                 </div>
                 """,
