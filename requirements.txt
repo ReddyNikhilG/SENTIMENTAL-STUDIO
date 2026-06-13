@@ -4,7 +4,3 @@ python-multipart>=0.0.9
 pandas>=2.0.0
 vaderSentiment>=3.3.2
 pypdf>=5.0.0
-transformers>=4.30.0
-torch>=2.0.0
-sentencepiece>=0.1.99
-torchvision>=0.15.0
