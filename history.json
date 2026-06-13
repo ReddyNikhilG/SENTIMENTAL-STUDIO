@@ -1,0 +1,47 @@
+[
+  {
+    "id": "h_1781178234101",
+    "date": "2026-06-11T17:13:54.101494",
+    "text": "I love this product, it is amazing!",
+    "sentiment": "positive",
+    "score": 0.8516,
+    "emoji": "😊",
+    "confidence": 0.624
+  },
+  {
+    "id": "h_1781030345313",
+    "date": "2026-06-10T00:09:05.313315",
+    "text": "This is a fantastic application, but the latency is somewhat high.",
+    "sentiment": "positive",
+    "score": 0.1743655800819397,
+    "emoji": "😊",
+    "confidence": 0.5803643465042114
+  },
+  {
+    "id": "h_1781029597022",
+    "date": "2026-06-09T23:56:37.022080",
+    "text": "Standard financial metrics were reported.",
+    "sentiment": "neutral",
+    "score": -0.000193512300029397,
+    "emoji": "😐",
+    "confidence": 0.9991592764854431
+  },
+  {
+    "id": "h_1781029589322",
+    "date": "2026-06-09T23:56:29.322746",
+    "text": "The interface looks beautiful but the latency is disappointing.",
+    "sentiment": "negative",
+    "score": -0.7310570431873202,
+    "emoji": "😡",
+    "confidence": 0.7341344356536865
+  },
+  {
+    "id": "h_1781029573600",
+    "date": "2026-06-09T23:56:13.600632",
+    "text": "This app is wonderful and extremely fast!",
+    "sentiment": "positive",
+    "score": 0.6114,
+    "emoji": "😊",
+    "confidence": 0.6
+  }
+]
