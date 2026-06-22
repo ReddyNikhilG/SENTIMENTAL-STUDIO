@@ -1,70 +1,95 @@
-# Sentiment Analysis App
+# 🌟 Sentiment Studio
 
-## Project Overview
+**Sentiment Studio** is a modern, full-stack application for performing advanced text sentiment analysis. Upgraded from its original Streamlit roots, the platform now features a blazing-fast Python FastAPI backend paired with a beautiful React frontend powered by TanStack Start, Tailwind CSS, and Radix UI.
 
-This repository now includes a **Streamlit** application for sentiment analysis. The app accepts user text, classifies it as **Positive, Negative, or Neutral**, shows a 0-4 score, confidence, emoji feedback, analysis history, charts, and CSV export.
+## ✨ Features
 
-The Streamlit version uses a lightweight local sentiment engine so it is easier to run and deploy on Streamlit Cloud.
+- **Multi-Model Support**: 
+  - 🧠 **DeBERTa Zero-Shot Classification**: High accuracy contextual sentiment analysis using Hugging Face transformers (DeBERTa Small & Base).
+  - ⚡ **VADER Sentiment**: Lightning-fast, rule-based fallback model.
+- **Rich User Interface**: Built with React, Framer Motion, and Tailwind CSS for a premium, responsive experience.
+- **PDF Extraction**: Upload a PDF document and instantly extract and analyze its text sentiment.
+- **Analytics Dashboard**: Real-time trend analysis tracking sentiment distributions over time.
+- **History Tracking**: Local session-based history management.
+- **Export Capabilities**: Download sentiment reports in `.csv` or text format.
+- **Background Preloading**: Asynchronous model loading ensures quick response times without cold starts.
 
-## Features
+## 🛠️ Technology Stack
 
-- Text sentiment classification
-- Streamlit web UI
-- Live sentiment summary after analysis
-- Session-based history tracking
-- Score, confidence, and emoji output
-- Sentiment score chart and keyword focus view
-- CSV download for recent analyses
+### Frontend
+- **Framework**: [TanStack Start](https://tanstack.com/start) / React 19
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) & [shadcn/ui](https://ui.shadcn.com/) (Radix primitives)
+- **Animations**: [Framer Motion](https://www.framer.com/motion/)
+- **Charts**: [Recharts](https://recharts.org/)
 
-## Technologies Used
+### Backend
+- **Framework**: [FastAPI](https://fastapi.tiangolo.com/) (Python 3.x)
+- **NLP Models**: 
+  - `Transformers` (Hugging Face DeBERTa-v3)
+  - `vaderSentiment`
+- **Utilities**: `pandas`, `pypdf` for data processing and PDF parsing
 
-- Python
-- Streamlit
-- pandas
-- Altair
-- vaderSentiment
+## 🚀 Getting Started
 
-## Project Structure
+### Prerequisites
+- Node.js & npm (or Bun)
+- Python 3.8+ 
 
-```text
-SENTIMENTAL-ANALYSIS
-├── app.py
-├── requirements.txt
-├── .streamlit/
-│   └── config.toml
-├── src/
-│   └── main/
-│       └── java/
-│           └── devxplaining/sentimentanalysis/
-│               └── ... original Spring Boot sources
-└── README.md
-```
+### 1. Backend Setup
 
-## Run Locally
-
-1. Create or activate the virtual environment.
-2. Install dependencies:
+Navigate to the project root and create a virtual environment:
 
 ```bash
+# Create virtual environment
+python -m venv .venv
+
+# Activate it (Windows)
+.venv\Scripts\activate
+# Activate it (Mac/Linux)
+source .venv/bin/activate
+
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-3. Start the app:
+### 2. Frontend Setup
+
+Install the Node.js dependencies:
 
 ```bash
-streamlit run app.py
+npm install
+# or
+bun install
 ```
 
-Then open the local URL shown by Streamlit.
+### 3. Running the App locally
 
-## Deploy to Streamlit Cloud
+The project is structured to run the backend and frontend concurrently or serve the built frontend via FastAPI.
 
-1. Push this repository to GitHub.
-2. Create a new app in Streamlit Cloud.
-3. Set the main file path to `app.py`.
-4. Keep `requirements.txt` in the repository root.
+**To run the frontend dev server:**
+```bash
+npm run dev
+```
 
-## Notes
+**To run the backend server:**
+```bash
+uvicorn app:app --host 0.0.0.0 --port 8500 --reload
+```
+*(The FastAPI app is also configured to serve the frontend from `dist/client` if built for production).*
 
-- History is stored in the current Streamlit session only.
-- The original Java Spring Boot source remains in the repository, but the Streamlit app is now the primary runnable interface.
+## 🌐 API Endpoints
+
+- `POST /predict` - Accepts JSON with `text` and `model` (VADER, DeBERTa Small, DeBERTa Base).
+- `POST /pdf/extract` - Upload a PDF and extract text for analysis.
+- `GET /history` - Fetch recent analysis history.
+- `GET /analytics` - Get aggregation and trend metrics.
+- `GET /export/csv` - Download history as CSV.
+- `GET /report` - Download latest report as TXT.
+
+## 🤝 Contributing
+
+Contributions are welcome! Feel free to open an issue or submit a pull request if you'd like to improve Sentiment Studio.
+
+## 📝 License
+
+This project is open-source and available under the [MIT License](LICENSE).
