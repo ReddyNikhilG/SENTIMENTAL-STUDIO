@@ -1,43 +1,90 @@
+<div align="center">
+
 # 🌟 Sentiment Studio
+**Next-Generation Text & Document Sentiment Analysis Platform**
 
-**Sentiment Studio** is a modern, full-stack application for performing advanced text sentiment analysis. Upgraded from its original Streamlit roots, the platform now features a blazing-fast Python FastAPI backend paired with a beautiful React frontend powered by TanStack Start, Tailwind CSS, and Radix UI.
+[![Python 3.8+](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=flat&logo=fastapi)](https://fastapi.tiangolo.com/)
+[![React 19](https://img.shields.io/badge/React-19-61DAFB?style=flat&logo=react)](https://react.dev/)
+[![Tailwind CSS v4](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=flat&logo=tailwind-css)](https://tailwindcss.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## ✨ Features
+*An advanced full-stack application that transforms raw text and PDFs into actionable emotional insights using state-of-the-art NLP models.*
 
-- **Multi-Model Support**: 
-  - 🧠 **DeBERTa Zero-Shot Classification**: High accuracy contextual sentiment analysis using Hugging Face transformers (DeBERTa Small & Base).
-  - ⚡ **VADER Sentiment**: Lightning-fast, rule-based fallback model.
-- **Rich User Interface**: Built with React, Framer Motion, and Tailwind CSS for a premium, responsive experience.
-- **PDF Extraction**: Upload a PDF document and instantly extract and analyze its text sentiment.
-- **Analytics Dashboard**: Real-time trend analysis tracking sentiment distributions over time.
-- **History Tracking**: Local session-based history management.
-- **Export Capabilities**: Download sentiment reports in `.csv` or text format.
-- **Background Preloading**: Asynchronous model loading ensures quick response times without cold starts.
+---
+
+</div>
+
+## 📖 Table of Contents
+- [✨ Key Features](#-key-features)
+- [🏗️ System Architecture](#️-system-architecture)
+- [🛠️ Technology Stack](#️-technology-stack)
+- [🚀 Getting Started](#-getting-started)
+- [🌐 API Endpoints](#-api-endpoints)
+- [🤝 Contributing](#-contributing)
+- [📝 License](#-license)
+
+## ✨ Key Features
+
+- **Multi-Model Intelligence** 🧠
+  - **DeBERTa Zero-Shot Classification**: Leverage Hugging Face's powerful contextual models (Small & Base) for nuanced understanding.
+  - **VADER Sentiment**: Lightning-fast, rule-based fallback model for immediate results.
+- **Rich & Responsive User Interface** 🎨
+  - Built with React, Framer Motion, and Tailwind CSS for a premium, buttery-smooth experience.
+- **Seamless Document Processing** 📄
+  - Upload PDF documents and instantly extract and analyze their text sentiment.
+- **Real-time Analytics Dashboard** 📊
+  - Track sentiment distributions and trends over time with dynamic Recharts visualizations.
+- **Robust Session Management** 🕒
+  - Local session-based history tracking to keep your analysis data secure and accessible.
+- **Flexible Export Capabilities** 💾
+  - Download detailed sentiment reports in `.csv` or `.txt` formats for downstream use.
+- **Zero Cold Starts** ⚡
+  - Asynchronous background model preloading ensures instant API responses.
+
+## 🏗️ System Architecture
+
+```mermaid
+graph TD
+    Client[📱 React Client Interface] --> |REST API| API[⚡ FastAPI Gateway]
+    
+    API --> |Routing| NLP[🧠 NLP Engine]
+    API --> |PDF Parsing| DOC[📄 Document Processor]
+    
+    subgraph Engine
+        NLP --> |Primary| DeBERTa[🤖 DeBERTa v3 Models]
+        NLP --> |Fallback| VADER[⚙️ VADER Engine]
+    end
+    
+    DOC --> |Extracted Text| NLP
+    
+    DeBERTa --> Response[📊 Sentiment Metrics & Keywords]
+    VADER --> Response
+    
+    Response --> API
+    API --> Client
+```
 
 ## 🛠️ Technology Stack
 
-### Frontend
-- **Framework**: [TanStack Start](https://tanstack.com/start) / React 19
-- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) & [shadcn/ui](https://ui.shadcn.com/) (Radix primitives)
-- **Animations**: [Framer Motion](https://www.framer.com/motion/)
-- **Charts**: [Recharts](https://recharts.org/)
-
-### Backend
-- **Framework**: [FastAPI](https://fastapi.tiangolo.com/) (Python 3.x)
-- **NLP Models**: 
-  - `Transformers` (Hugging Face DeBERTa-v3)
-  - `vaderSentiment`
-- **Utilities**: `pandas`, `pypdf` for data processing and PDF parsing
+| Layer | Technologies |
+| :--- | :--- |
+| **Frontend** | [TanStack Start](https://tanstack.com/start), React 19, [Tailwind CSS v4](https://tailwindcss.com/), [shadcn/ui](https://ui.shadcn.com/), [Framer Motion](https://www.framer.com/motion/), [Recharts](https://recharts.org/) |
+| **Backend** | [FastAPI](https://fastapi.tiangolo.com/), Python 3.8+ |
+| **Machine Learning** | Hugging Face `Transformers` (DeBERTa-v3), `vaderSentiment` |
+| **Data Processing** | `pandas`, `pypdf` |
 
 ## 🚀 Getting Started
 
+Follow these steps to get a local instance of Sentiment Studio running on your machine.
+
 ### Prerequisites
-- Node.js & npm (or Bun)
-- Python 3.8+ 
+- [Node.js](https://nodejs.org/) & npm (or [Bun](https://bun.sh/))
+- [Python 3.8+](https://www.python.org/)
 
 ### 1. Backend Setup
 
-Navigate to the project root and create a virtual environment:
+Navigate to the project root and create an isolated virtual environment:
 
 ```bash
 # Create virtual environment
@@ -45,51 +92,56 @@ python -m venv .venv
 
 # Activate it (Windows)
 .venv\Scripts\activate
+
 # Activate it (Mac/Linux)
 source .venv/bin/activate
 
-# Install dependencies
+# Install core dependencies
 pip install -r requirements.txt
 ```
 
 ### 2. Frontend Setup
 
-Install the Node.js dependencies:
+Install the required JavaScript packages:
 
 ```bash
 npm install
-# or
+# or if using Bun
 bun install
 ```
 
-### 3. Running the App locally
+### 3. Running the Application
 
-The project is structured to run the backend and frontend concurrently or serve the built frontend via FastAPI.
+The project is designed to run the backend and frontend concurrently for an optimal development experience.
 
-**To run the frontend dev server:**
+**Start the Frontend Server:**
 ```bash
 npm run dev
 ```
 
-**To run the backend server:**
+**Start the Backend API Server:**
 ```bash
 uvicorn app:app --host 0.0.0.0 --port 8500 --reload
 ```
-*(The FastAPI app is also configured to serve the frontend from `dist/client` if built for production).*
+> *Note: In a production build, the FastAPI application is also configured to serve the statically built frontend directly from the `dist/client` directory.*
 
 ## 🌐 API Endpoints
 
-- `POST /predict` - Accepts JSON with `text` and `model` (VADER, DeBERTa Small, DeBERTa Base).
-- `POST /pdf/extract` - Upload a PDF and extract text for analysis.
-- `GET /history` - Fetch recent analysis history.
-- `GET /analytics` - Get aggregation and trend metrics.
-- `GET /export/csv` - Download history as CSV.
-- `GET /report` - Download latest report as TXT.
+The backend exposes a robust RESTful API documented automatically via Swagger UI (accessible at `/docs` when running locally).
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/predict` | Analyzes JSON containing `text` and `model` (VADER, DeBERTa Small, DeBERTa Base). |
+| `POST` | `/pdf/extract` | Uploads a PDF and extracts its text for immediate analysis. |
+| `GET` | `/history` | Fetches the recent sentiment analysis session history. |
+| `GET` | `/analytics` | Aggregates trend metrics and sentiment distributions. |
+| `GET` | `/export/csv` | Downloads the current session history as a structured CSV file. |
+| `GET` | `/report` | Generates a comprehensive TXT report of the latest analysis. |
 
 ## 🤝 Contributing
 
-Contributions are welcome! Feel free to open an issue or submit a pull request if you'd like to improve Sentiment Studio.
+We welcome contributions from the community! If you'd like to improve **Sentiment Studio**, please fork the repository, make your changes, and submit a pull request. For major changes, please open an issue first to discuss what you would like to change.
 
 ## 📝 License
 
-This project is open-source and available under the [MIT License](LICENSE).
+This project is open-source and available under the terms of the [MIT License](LICENSE).
